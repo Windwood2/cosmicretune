@@ -1,4 +1,14 @@
 window.RESONANCE_SONGS = [
+	 {
+    slug: 'receive',
+    title: 'Receive',
+	image: 'assets/art/receive.png',
+    short: 'What if we finally go live?',
+    description: 'A driving recognition song about having the ability to follow the inner voice and admit you may have been wrong about the nature of reality',
+    status: 'Ready for your media files',
+    quote: "What if we were wrong, wouldn't that be freedom?"
+  },
+	
   {
     slug: 'the-deep-bend',
     title: 'The Deep Bend',
@@ -45,13 +55,4 @@ window.RESONANCE_SONGS = [
     quote: 'We arrive with no beliefs, no conclusions of our own.'
   },
 
-	 {
-    slug: 'receive',
-    title: 'Receive',
-	image: 'assets/art/receive.png',
-    short: 'What if we finally go live?',
-    description: 'A driving recognition song about having the ability to follow the inner voice and admit you may have been wrong about the nature of reality',
-    status: 'Ready for your media files',
-    quote: "What if we were wrong, wouldn't that be freedom?"
-  },
-];
+	];
