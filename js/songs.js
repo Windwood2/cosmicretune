@@ -7,6 +7,7 @@ window.RESONANCE_SONGS = [
     description: 'A driving recognition song about having the ability to follow the inner voice and admit you may have been wrong about the nature of reality',
     status: 'Ready for your media files',
     quote: "What if we were wrong, wouldn't that be freedom?"
+	youtube: 'https://youtu.be/dBUJzATHsrI'
   },
    {
     slug: 'retune',
