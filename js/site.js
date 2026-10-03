@@ -1,12 +1,37 @@
 function bySlug(slug) {
   return (window.RESONANCE_SONGS || []).find(song => song.slug === slug);
 }
+
 function songAudioPath(slug) { return `media/audio/${slug}.mp3`; }
 function songVideoPath(slug) { return `media/video/${slug}.mp4`; }
 function songLyricsPath(slug) { return `data/lyrics/${slug}.txt`; }
 
 function escapeHtml(str='') {
-  return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[ch]));
+}
+
+function youtubeId(url='') {
+  const value = String(url).trim();
+  if (!value) return '';
+  const shortMatch = value.match(/youtu\.be\/([A-Za-z0-9_-]{6,})/);
+  if (shortMatch) return shortMatch[1];
+  const watchMatch = value.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
+  if (watchMatch) return watchMatch[1];
+  const embedMatch = value.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{6,})/);
+  if (embedMatch) return embedMatch[1];
+  return '';
+}
+
+function youtubeEmbed(song) {
+  const id = youtubeId(song.youtube || '');
+  if (!id) return '';
+  return `https://www.youtube-nocookie.com/embed/${id}?rel=0`;
 }
 
 function setActiveNav() {
@@ -22,6 +47,7 @@ function renderSongCards(targetId, limit = null) {
   if (!el) return;
   const songs = window.RESONANCE_SONGS || [];
   const list = limit ? songs.slice(0, limit) : songs;
+
   el.innerHTML = list.map(song => `
     <article class="card song-card">
       <img class="card-media" src="${song.image || 'assets/art/listening-room.png'}" alt="${escapeHtml(song.title)} artwork">
@@ -52,6 +78,23 @@ async function loadText(url) {
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error('not found');
   return res.text();
+}
+
+function youtubeSection(embedUrl) {
+  return `
+    <section class="watch-column">
+      <div class="video-sticky">
+        <div class="kicker watch-kicker">Watch</div>
+        <div class="youtube-frame">
+          <iframe
+            src="${embedUrl}"
+            title="YouTube video player"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>`;
 }
 
 async function renderSongPage() {
@@ -86,16 +129,22 @@ async function renderSongPage() {
     loadText(lyricsPath).catch(() => '')
   ]);
 
+  const embedUrl = youtubeEmbed(song);
+
   const audioSection = hasAudio ? `
     <section class="panel audio-box">
       <h3>Listen</h3>
-      <audio controls preload="metadata"><source src="${audioPath}" type="audio/mpeg"></audio>
+      <audio controls preload="metadata">
+        <source src="${audioPath}" type="audio/mpeg">
+      </audio>
     </section>` : '';
 
-  const videoSection = hasVideo ? `
+  const localVideoSection = (!embedUrl && hasVideo) ? `
     <section class="panel video-box">
       <h3>Watch</h3>
-      <video controls preload="metadata"><source src="${videoPath}" type="video/mp4"></video>
+      <video controls preload="metadata">
+        <source src="${videoPath}" type="video/mp4">
+      </video>
     </section>` : '';
 
   const lyricsSection = lyricsText.trim() ? `
@@ -103,6 +152,23 @@ async function renderSongPage() {
       <h3>Lyrics</h3>
       <pre class="lyrics">${escapeHtml(lyricsText)}</pre>
     </section>` : '';
+
+  let watchReadSection = '';
+
+  if (embedUrl && lyricsText.trim()) {
+    watchReadSection = `
+      <div class="watch-read-layout">
+        ${youtubeSection(embedUrl)}
+        ${lyricsSection}
+      </div>`;
+  } else if (embedUrl) {
+    watchReadSection = `
+      <div class="watch-read-layout video-only-layout">
+        ${youtubeSection(embedUrl)}
+      </div>`;
+  } else {
+    watchReadSection = `${localVideoSection}${lyricsSection}`;
+  }
 
   target.innerHTML = `
     <div class="song-layout">
@@ -114,16 +180,21 @@ async function renderSongPage() {
           <p>${escapeHtml(song.description || '')}</p>
         </section>
         ${audioSection}
-        ${videoSection}
-        ${lyricsSection}
       </div>
+
       <aside class="song-side">
         <section class="card">
           <img class="card-media" src="${song.image || 'assets/art/resonance-field.png'}" alt="${escapeHtml(song.title)} artwork">
-          ${song.quote ? `<div class="card-body"><div class="kicker">Line</div><p class="quote">${escapeHtml(song.quote)}</p></div>` : ''}
+          ${song.quote ? `
+            <div class="card-body">
+              <div class="kicker">Line</div>
+              <p class="quote">${escapeHtml(song.quote)}</p>
+            </div>` : ''}
         </section>
       </aside>
     </div>
+
+    ${watchReadSection}
   `;
 }
 
@@ -133,3 +204,4 @@ window.addEventListener('DOMContentLoaded', () => {
   renderSongCards('all-songs');
   renderSongPage();
 });
+
