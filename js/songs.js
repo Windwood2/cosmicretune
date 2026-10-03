@@ -8,17 +8,7 @@ window.RESONANCE_SONGS = [
     status: 'Ready for your media files',
     quote: "What if we were wrong, wouldn't that be freedom?"
   },
-	
-  {
-    slug: 'the-deep-bend',
-    title: 'The Deep Bend',
-	image: 'assets/art/bend-the-knees.png',
-    short: 'Save the bending for the dancing',
-    description: 'A driving recognition song about posture, permission, social gravity, and the moment the body remembers what knees are for.',
-    status: 'Ready for your media files',
-    quote: 'The trouble with humans is we bend at the knee'
-  },
-  {
+   {
     slug: 'retune',
     title: 'Retune',
 	image: 'assets/art/retune.png',
@@ -53,6 +43,15 @@ window.RESONANCE_SONGS = [
     description: 'Born into a world of confusion, who do we turn to?',
     status: 'Ready for your media files',
     quote: 'We arrive with no beliefs, no conclusions of our own.'
+  },
+	{
+    slug: 'the-deep-bend',
+    title: 'The Deep Bend',
+	image: 'assets/art/bend-the-knees.png',
+    short: 'Save the bending for the dancing',
+    description: 'A driving recognition song about posture, permission, social gravity, and the moment the body remembers what knees are for.',
+    status: 'Ready for your media files',
+    quote: 'The trouble with humans is we bend at the knee'
   },
 
 	];
