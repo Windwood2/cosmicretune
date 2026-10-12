@@ -45,6 +45,14 @@ window.RESONANCE_SONGS = [
     status: 'Ready for your media files',
     quote: 'We arrive with no beliefs, no conclusions of our own.'
   },
+	  {
+    slug: 'the-speed-of-exchange',
+    title: 'Speed of Exchange',
+    image: 'assets/art/the-speed-of-exchange.png',
+    short: 'Are we too full to receive?',
+    description: 'More than we can hold, more than we can say. A song about giving, receiving, and being changed by what passes between us.',
+    quote: 'We’re all moving now at the speed of exchange'
+  },
 	{
     slug: 'the-deep-bend',
     title: 'The Deep Bend',
