@@ -94,7 +94,7 @@ window.RESONANCE_SONGS = [
   "short": "You came a long way to get nowhere.",
   "description": "A desert pilgrimage, a mystery school, and an old man with a cup of water. A wry tale of the distances we travel to hear what we already know.",
   "quote": "Anything this inconvenient has to be profound"
-}
+},
 	{
   "slug": "coincidence-probably",
   "title": "Coincidence Probably",
