@@ -63,12 +63,13 @@ window.RESONANCE_SONGS = [
     quote: 'The trouble with humans is we bend at the knee'
   },
 	 {
-    "slug": "freedoms-ring",
-    "title": "Freedom’s Ring",
-    "image": "assets/art/freedoms-ring.png",
-    "short": "What if being wrong could set us free?",
-    "description": "A song about loosening certainty, questioning inherited stories, and hearing life as it happens.",
-    "quote": "What if we were wrong, wouldn’t that be freedom?"
+    slug: "freedoms-ring",
+    title: "Freedom’s Ring",
+    image: "assets/art/freedoms-ring.png",
+    short: "What if being wrong could set us free?",
+    description: "A song about loosening certainty, questioning inherited stories, and hearing life as it happens.",
+    quote: "What if we were wrong, wouldn’t that be freedom?",
+    youtube: 'https://youtu.be/SaumaNAMsq4'
   },
 
 	];
