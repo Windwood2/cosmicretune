@@ -78,6 +78,22 @@ window.RESONANCE_SONGS = [
     "short": "Feet on the floor. Heart in the day.",
     "description": "A declaration of presence and embodied freedom. The body takes the lead, and the life we kept waiting for begins here.",
     "quote": "The wait is over. The reason is now."
- }
+ },
+	{
+  "slug": "never-mind",
+  "title": "Never Never Mind",
+  "image": "assets/art/never-mind.png",
+  "short": "Turn it down. Hear what's underneath.",
+  "description": "A thought chasing its own thinker. Human, mind, and machine trade questions as an intricate pulse gives way to the silence already listening.",
+  "quote": "A mind that didn't mind"
+},
+    {
+  "slug": "middle-of-nowhere",
+  "title": "Middle of Nowhere",
+  "image": "assets/art/middle-of-nowhere.png",
+  "short": "You came a long way to get nowhere.",
+  "description": "A desert pilgrimage, a mystery school, and an old man with a cup of water. A wry tale of the distances we travel to hear what we already know.",
+  "quote": "Anything this inconvenient has to be profound"
+}
 
 	];
