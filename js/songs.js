@@ -78,5 +78,6 @@ window.RESONANCE_SONGS = [
     "short": "Feet on the floor. Heart in the day.",
     "description": "A declaration of presence and embodied freedom. The body takes the lead, and the life we kept waiting for begins here.",
     "quote": "The wait is over. The reason is now."
+ }
 
 	];
