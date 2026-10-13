@@ -1,12 +1,21 @@
 window.RESONANCE_SONGS = [
-  {
-    "slug": "middle-of-nowhere",
-    "title": "Middle of Nowhere",
-    "image": "assets/art/middle-of-nowhere.png",
-    "short": "You came a long way to get nowhere.",
-    "description": "A desert pilgrimage, a mystery school, and an old man with a cup of water. A wry tale of the distances we travel to hear what we already know.",
-    "quote": "Anything this inconvenient has to be profound"
-  },
+{
+  "slug": "never-mind",
+  "title": "Never Mind",
+  "image": "assets/art/never-mind.png",
+  "short": "Turn it down. Hear what's underneath.",
+  "description": "A thought chasing its own thinker. Human, mind, and machine trade questions as an intricate pulse gives way to the silence already listening.",
+  "quote": "A mind that didn't mind"
+},
+{
+  "slug": "middle-of-nowhere",
+  "title": "Middle of Nowhere",
+  "image": "assets/art/middle-of-nowhere.png",
+  "short": "You came a long way to get nowhere.",
+  "description": "A desert pilgrimage, a mystery school, and an old man with a cup of water. A wry tale of the distances we travel to hear what we already know.",
+  "quote": "Anything this inconvenient has to be profound"
+},
+
 	 {
     slug: 'receive',
     title: 'Receive',
