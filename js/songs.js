@@ -71,5 +71,12 @@ window.RESONANCE_SONGS = [
     quote: "What if we were wrong, wouldn’t that be freedom?",
     youtube: 'https://youtu.be/SaumaNAMsq4'
   },
+	 {
+    "slug": "the-wait-is-over",
+    "title": "The Wait Is Over",
+    "image": "assets/art/the-wait-is-over.png",
+    "short": "Feet on the floor. Heart in the day.",
+    "description": "A declaration of presence and embodied freedom. The body takes the lead, and the life we kept waiting for begins here.",
+    "quote": "The wait is over. The reason is now."
 
 	];
