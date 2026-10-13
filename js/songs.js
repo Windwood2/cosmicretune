@@ -95,5 +95,13 @@ window.RESONANCE_SONGS = [
   "description": "A desert pilgrimage, a mystery school, and an old man with a cup of water. A wry tale of the distances we travel to hear what we already know.",
   "quote": "Anything this inconvenient has to be profound"
 }
+	{
+  "slug": "coincidence-probably",
+  "title": "Coincidence Probably",
+  "image": "assets/art/coincidence-probably.png",
+  "short": "I just keep arriving early at places I can't see.",
+  "description": "Coffee before the question. A glass moved before the spill. Tomorrow keeps arriving early, and nobody is making a claim.",
+  "quote": "The future has terrible manners"
+}
 
 	];
