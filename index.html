@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <script src="js/songs.js"></script>
   <script src="js/site.js" defer></script>
-
-   <style>
+  <style>
     /* The home-page listening session. */
     #shuffle-start { cursor: pointer; font: inherit; font-weight: bold; }
     .shuffle-section[hidden] { display: none; }
@@ -61,13 +60,14 @@
     <p class="lead">Resonance Music looks at human life from outside its ordinary frame. It is less about looking up for answers than looking back at us from a wider horizon and hearing what finally becomes obvious.</p>
     <div class="quote">Resonance Music is not defined by how it sounds. It is defined by what happens when you hear it.</div>
     <div class="buttons">
-      <a class="btn primary" href="songs.html">Enter the listening room</a>
+      <button class="btn primary" id="shuffle-start" type="button" aria-controls="shuffle-player" aria-expanded="false">Shuffle all songs</button>
+      <a class="btn" href="songs.html">Enter the listening room</a>
       <a class="btn" href="philosophy.html">Read the ideas</a>
     </div>
   </div>
 </section>
 
-  <section id="shuffle-player" class="section shuffle-section" aria-labelledby="shuffle-title" hidden>
+<section id="shuffle-player" class="section shuffle-section" aria-labelledby="shuffle-title" hidden>
   <div class="container">
     <div class="panel shuffle-panel">
       <img id="shuffle-art" class="shuffle-art" width="144" height="144" alt="">
@@ -134,8 +134,7 @@
 </section>
 
 <footer><div class="container footer-wrap"><span>Resonance Music — music from the larger view.</span><a class="footer-companion" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Windwood Designs — art and woodworking (opens in a new tab)">Windwood Designs · Art &amp; woodworking <span aria-hidden="true">↗</span></a></div></footer>
-
-  <script id="shuffle-player-script">
+<script id="shuffle-player-script">
 (() => {
   'use strict';
   const get = id => document.getElementById(id);
@@ -324,5 +323,9 @@
 })();
 </script>
 </body>
+</html>
+
+
+
 </html>
 
