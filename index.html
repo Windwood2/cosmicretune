@@ -67,6 +67,27 @@
   </div>
 </section>
 
+  <section id="shuffle-player" class="section shuffle-section" aria-labelledby="shuffle-title" hidden>
+  <div class="container">
+    <div class="panel shuffle-panel">
+      <img id="shuffle-art" class="shuffle-art" width="144" height="144" alt="">
+      <div class="shuffle-content">
+        <div class="kicker">Listening now</div>
+        <h2 id="shuffle-title">Resonance Music</h2>
+        <div class="shuffle-meta"><span id="shuffle-position"></span><span>Every song, a different order.</span></div>
+        <audio id="shuffle-audio" controls preload="none" aria-label="Shuffled song player"></audio>
+        <div class="shuffle-actions">
+          <button class="btn" id="shuffle-next" type="button">Next song</button>
+          <button class="btn" id="shuffle-again" type="button">Reshuffle</button>
+          <a id="shuffle-song-link" target="_blank" rel="noopener noreferrer" aria-label="Lyrics and artwork (opens in a new tab)">Lyrics &amp; artwork ↗</a>
+        </div>
+        <p id="shuffle-status" class="shuffle-status" role="status" aria-live="polite"></p>
+        <p class="shuffle-note">Keep this page open. After the last song, a fresh shuffle keeps the music going.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section">
   <div class="container grid two">
     <div class="panel">
