@@ -14,17 +14,17 @@
     }
     .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
   </style>
-<style>
+  <style>
     /* The listening-room playlist. */
     #shuffle-start { cursor: pointer; font: inherit; font-weight: bold; }
     .shuffle-section[hidden] { display: none; }
     .shuffle-section { padding: 1.6rem 0 0; scroll-margin-top: 6rem; }
     .shuffle-panel {
-      display: grid; grid-template-columns: 144px minmax(0, 1fr); gap: 1.4rem;
-      align-items: center; background: linear-gradient(135deg, rgba(77,48,32,.35), var(--panel-strong));
+      display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.6rem;
+      align-items: start; background: linear-gradient(135deg, rgba(77,48,32,.35), var(--panel-strong));
       border-color: rgba(239,197,111,.27);
     }
-    .shuffle-art { width: 144px; height: 144px; object-fit: cover; border-radius: 14px; }
+    .shuffle-art { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 14px; margin-bottom: 1.2rem; }
     .shuffle-content { min-width: 0; }
     .shuffle-content h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin: .45rem 0 .55rem; }
     .shuffle-content audio { display: block; margin-top: .85rem; }
@@ -33,13 +33,27 @@
     .shuffle-actions { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; margin-top: .8rem; }
     .shuffle-actions button { cursor: pointer; font: inherit; font-size: .9rem; padding: .55rem .9rem; box-shadow: none; }
     .shuffle-actions button:disabled { opacity: .45; cursor: default; }
-    .shuffle-actions a { font-size: .9rem; margin-left: .35rem; }
     .shuffle-status { font-size: .9rem; margin: .7rem 0 0; line-height: 1.5; }
     .shuffle-note { color: var(--muted); font-size: .85rem; margin: .35rem 0 0; line-height: 1.5; }
+    .shuffle-intro { color: var(--muted); font-size: .95rem; margin: .8rem 0 0; }
+    .shuffle-lyrics { min-width: 0; }
+    .shuffle-lyrics h3 { color: var(--gold); font-size: 1rem; letter-spacing: .1em; margin: 0 0 .45rem; }
+    .shuffle-lyrics-song { color: var(--text); margin: 0 0 .8rem; line-height: 1.4; }
+    .shuffle-lyrics-scroll {
+      height: clamp(24rem, 62vh, 36rem); overflow-y: auto; overscroll-behavior: contain;
+      scrollbar-gutter: stable; border: 1px solid var(--line); border-radius: 14px;
+      background: rgba(0,0,0,.14); padding: 1.15rem;
+    }
+    .shuffle-lyrics-scroll pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 1rem/1.8 Georgia, serif; color: var(--text); margin: 0; }
+    .shuffle-lyrics-scroll:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+    .shuffle-lyrics-status { color: var(--muted); margin: 0; line-height: 1.6; }
     #shuffle-start:focus-visible, .shuffle-actions button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
-    @media (max-width: 560px) {
+    @media (max-width: 800px) {
       .shuffle-panel { grid-template-columns: 1fr; gap: 1rem; }
-      .shuffle-art { width: 100%; height: auto; max-height: 210px; aspect-ratio: 16 / 9; }
+      .shuffle-lyrics-scroll { height: min(65vh, 30rem); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
     }
   </style>
   <style>#all-songs { scroll-margin-top: 6rem; }</style>
@@ -48,26 +62,34 @@
 <header class="topbar"><div class="container nav-wrap"><a class="brand" href="index.html">Resonance Music</a><nav class="nav"><a href="index.html">Home</a><a href="songs.html">Songs</a><a href="philosophy.html">Philosophy</a><a href="about.html">About</a><a href="visuals.html">Visuals</a><a class="companion-link" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Art — Windwood Designs (opens in a new tab)">Art <span aria-hidden="true">↗</span></a></nav></div></header>
 <section class="hero small"><div class="hero-bg" style="background-image:url('assets/art/listening-room.png');"></div><div class="hero-overlay"></div><div class="container hero-content"><div class="eyebrow">Listening room</div><h1>Songs</h1><p class="lead">Songs for the moment when an old certainty loosens and something previously unnamed becomes audible.</p>
     <div class="buttons">
-      <button class="btn" id="shuffle-start" type="button" aria-controls="shuffle-player" aria-expanded="false">Shuffle Play all songs</button>
-      <a class="btn" href="#all-songs">Choose a song</a>
-    </div></div></section>
+      <button class="btn" id="shuffle-start" type="button" aria-controls="shuffle-player" aria-expanded="false" aria-describedby="shuffle-intro">Shuffle &amp; play all songs</button>
+    </div>
+    <p id="shuffle-intro" class="shuffle-intro">Continuous music in a random order, with lyrics that change with each song.</p>
+  </div></section>
 <section id="shuffle-player" class="section shuffle-section" aria-labelledby="shuffle-title" hidden>
   <div class="container">
     <div class="panel shuffle-panel">
-      <img id="shuffle-art" class="shuffle-art" width="144" height="144" alt="">
       <div class="shuffle-content">
+        <img id="shuffle-art" class="shuffle-art" width="720" height="405" alt="">
         <div class="kicker">Listening now</div>
         <h2 id="shuffle-title">Resonance Music</h2>
         <div class="shuffle-meta"><span id="shuffle-position"></span><span>Every song, a different order.</span></div>
         <audio id="shuffle-audio" controls preload="none" aria-label="Shuffled song player"></audio>
         <div class="shuffle-actions">
           <button class="btn" id="shuffle-next" type="button">Next song</button>
-          <button class="btn" id="shuffle-again" type="button">Reshuffle</button>
-          <a id="shuffle-song-link" target="_blank" rel="noopener noreferrer" aria-label="Lyrics and artwork (opens in a new tab)">Lyrics &amp; artwork ↗</a>
+          <button class="btn" id="shuffle-again" type="button">Reshuffle &amp; play</button>
         </div>
         <p id="shuffle-status" class="shuffle-status" role="status" aria-live="polite"></p>
         <p class="shuffle-note">Keep this page open. After the last song, a fresh shuffle keeps the music going.</p>
       </div>
+      <section class="shuffle-lyrics" aria-labelledby="shuffle-lyrics-title">
+        <h3 id="shuffle-lyrics-title">Lyrics</h3>
+        <p id="shuffle-lyrics-song" class="shuffle-lyrics-song"></p>
+        <div id="shuffle-lyrics-scroll" class="shuffle-lyrics-scroll" tabindex="0" role="region" aria-labelledby="shuffle-lyrics-title shuffle-lyrics-song" aria-busy="false">
+          <p id="shuffle-lyrics-status" class="shuffle-lyrics-status" role="status" aria-live="polite"></p>
+          <pre id="shuffle-lyrics-text" hidden></pre>
+        </div>
+      </section>
     </div>
   </div>
 </section>
@@ -80,7 +102,9 @@
   const get = id => document.getElementById(id);
   const start = get('shuffle-start'), panel = get('shuffle-player'), audio = get('shuffle-audio');
   const title = get('shuffle-title'), artwork = get('shuffle-art'), position = get('shuffle-position');
-  const status = get('shuffle-status'), next = get('shuffle-next'), songLink = get('shuffle-song-link');
+  const status = get('shuffle-status'), next = get('shuffle-next');
+  const lyrics = get('shuffle-lyrics-text'), lyricsStatus = get('shuffle-lyrics-status');
+  const lyricsScroll = get('shuffle-lyrics-scroll'), lyricsSong = get('shuffle-lyrics-song');
   const seen = new Set();
   const songs = (window.RESONANCE_SONGS || []).filter(song => {
     if (!song || !/^[a-z0-9_-]+$/i.test(song.slug || '') || seen.has(song.slug)) return false;
@@ -89,8 +113,53 @@
   });
   let queue = [], index = -1, current = null, sessionActive = false;
   let wantsPlay = false, switching = false, loadId = 0, failedLoad = -1, expectedSource = '';
+  let lyricsRequest = null;
   const unavailable = new Set();
   const message = text => { status.textContent = text; };
+
+  async function updateLyrics(song, token) {
+    if (lyricsRequest) lyricsRequest.abort();
+    const request = new AbortController();
+    lyricsRequest = request;
+    lyricsSong.textContent = song.title || song.slug;
+    lyrics.textContent = '';
+    lyrics.hidden = true;
+    lyricsScroll.scrollTop = 0;
+    lyricsScroll.setAttribute('aria-busy', 'true');
+    lyricsStatus.hidden = false;
+    lyricsStatus.textContent = 'Loading lyrics…';
+    try {
+      const url = new URL('data/lyrics/' + encodeURIComponent(song.slug) + '.txt', document.baseURI);
+      const response = await fetch(url.href, { signal: request.signal });
+      if (token !== loadId) return;
+      if (response.status === 404) {
+        lyricsStatus.textContent = 'Lyrics haven’t been added for this song yet.';
+        return;
+      }
+      if (!response.ok || (response.headers.get('content-type') || '').includes('text/html')) throw new Error('Lyrics unavailable');
+      const text = (await response.text()).trim();
+      if (token !== loadId) return;
+      if (!text) {
+        lyricsStatus.textContent = 'Lyrics haven’t been added for this song yet.';
+        return;
+      }
+      // Plain text preserves the lyric layout without treating it as HTML.
+      lyrics.textContent = text;
+      lyrics.hidden = false;
+      lyricsStatus.textContent = '';
+      lyricsStatus.hidden = true;
+      lyricsScroll.scrollTop = 0;
+    } catch (error) {
+      if (token === loadId && error.name !== 'AbortError') {
+        lyricsStatus.textContent = 'Lyrics could not load. They’ll update with the next song.';
+      }
+    } finally {
+      if (token === loadId) {
+        lyricsScroll.setAttribute('aria-busy', 'false');
+        lyricsRequest = null;
+      }
+    }
+  }
 
   function shuffled(list, avoidSlug) {
     const result = list.slice();
@@ -141,7 +210,7 @@
       audio.pause();
       next.disabled = true;
       mediaState('none');
-      message('The music could not load. Check your connection, then try Shuffle all songs again.');
+      message('The music could not load. Check your connection, then try Shuffle & play all songs again.');
       return;
     }
     if (!wantsPlay) {
@@ -184,7 +253,7 @@
     title.textContent = song.title || song.slug;
     artwork.src = song.image || 'assets/art/listening-room.png';
     artwork.alt = (song.title || song.slug) + ' artwork';
-    songLink.href = 'song.html?slug=' + encodeURIComponent(song.slug);
+    audio.setAttribute('aria-label', (song.title || song.slug) + ' audio player');
     position.textContent = 'Song ' + (index + 1) + ' of ' + queue.length;
     metadata(song);
     expectedSource = new URL('media/audio/' + encodeURIComponent(song.slug) + '.mp3', document.baseURI).href;
@@ -193,6 +262,8 @@
     audio.load();
     if (autoplay) playCurrent();
     else { switching = false; message('Paused. Press play when you’re ready.'); mediaState('paused'); }
+    // Fetch words after starting audio, so lyrics never delay the music.
+    updateLyrics(song, loadId);
   }
 
   function advance(autoplay = true) {
@@ -215,10 +286,9 @@
     next.disabled = false;
     panel.hidden = false;
     start.setAttribute('aria-expanded', 'true');
-    start.textContent = 'Reshuffle all songs';
     // Start inside the click gesture, without waiting for network checks.
     advance(true);
-    panel.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    panel.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
 
   start.addEventListener('click', beginShuffle);
@@ -264,6 +334,3 @@
 </script>
 </body>
 </html>
-
-
-
