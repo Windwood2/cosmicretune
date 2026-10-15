@@ -7,12 +7,263 @@
   <link rel="stylesheet" href="css/style.css">
   <script src="js/songs.js"></script>
   <script src="js/site.js" defer></script>
+  <style id="equal-choice-buttons">
+    .btn {
+      background: linear-gradient(180deg, rgba(255,220,132,.92), rgba(222,171,70,.92));
+      color: #101720;
+    }
+    .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+  </style>
+<style>
+    /* The listening-room playlist. */
+    #shuffle-start { cursor: pointer; font: inherit; font-weight: bold; }
+    .shuffle-section[hidden] { display: none; }
+    .shuffle-section { padding: 1.6rem 0 0; scroll-margin-top: 6rem; }
+    .shuffle-panel {
+      display: grid; grid-template-columns: 144px minmax(0, 1fr); gap: 1.4rem;
+      align-items: center; background: linear-gradient(135deg, rgba(77,48,32,.35), var(--panel-strong));
+      border-color: rgba(239,197,111,.27);
+    }
+    .shuffle-art { width: 144px; height: 144px; object-fit: cover; border-radius: 14px; }
+    .shuffle-content { min-width: 0; }
+    .shuffle-content h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin: .45rem 0 .55rem; }
+    .shuffle-content audio { display: block; margin-top: .85rem; }
+    .shuffle-meta { display: flex; gap: .6rem 1rem; flex-wrap: wrap; align-items: center; }
+    .shuffle-meta span { color: var(--muted); font-size: .9rem; }
+    .shuffle-actions { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; margin-top: .8rem; }
+    .shuffle-actions button { cursor: pointer; font: inherit; font-size: .9rem; padding: .55rem .9rem; box-shadow: none; }
+    .shuffle-actions button:disabled { opacity: .45; cursor: default; }
+    .shuffle-actions a { font-size: .9rem; margin-left: .35rem; }
+    .shuffle-status { font-size: .9rem; margin: .7rem 0 0; line-height: 1.5; }
+    .shuffle-note { color: var(--muted); font-size: .85rem; margin: .35rem 0 0; line-height: 1.5; }
+    #shuffle-start:focus-visible, .shuffle-actions button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+    @media (max-width: 560px) {
+      .shuffle-panel { grid-template-columns: 1fr; gap: 1rem; }
+      .shuffle-art { width: 100%; height: auto; max-height: 210px; aspect-ratio: 16 / 9; }
+    }
+  </style>
+  <style>#all-songs { scroll-margin-top: 6rem; }</style>
 </head>
 <body>
 <header class="topbar"><div class="container nav-wrap"><a class="brand" href="index.html">Resonance Music</a><nav class="nav"><a href="index.html">Home</a><a href="songs.html">Songs</a><a href="philosophy.html">Philosophy</a><a href="about.html">About</a><a href="visuals.html">Visuals</a><a class="companion-link" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Art — Windwood Designs (opens in a new tab)">Art <span aria-hidden="true">↗</span></a></nav></div></header>
-<section class="hero small"><div class="hero-bg" style="background-image:url('assets/art/listening-room.png');"></div><div class="hero-overlay"></div><div class="container hero-content"><div class="eyebrow">Listening room</div><h1>Songs</h1><p class="lead">Songs for the moment when an old certainty loosens and something previously unnamed becomes audible.</p></div></section>
+<section class="hero small"><div class="hero-bg" style="background-image:url('assets/art/listening-room.png');"></div><div class="hero-overlay"></div><div class="container hero-content"><div class="eyebrow">Listening room</div><h1>Songs</h1><p class="lead">Songs for the moment when an old certainty loosens and something previously unnamed becomes audible.</p>
+    <div class="buttons">
+      <button class="btn" id="shuffle-start" type="button" aria-controls="shuffle-player" aria-expanded="false">Shuffle all songs</button>
+      <a class="btn" href="#all-songs">Choose a song</a>
+    </div></div></section>
+<section id="shuffle-player" class="section shuffle-section" aria-labelledby="shuffle-title" hidden>
+  <div class="container">
+    <div class="panel shuffle-panel">
+      <img id="shuffle-art" class="shuffle-art" width="144" height="144" alt="">
+      <div class="shuffle-content">
+        <div class="kicker">Listening now</div>
+        <h2 id="shuffle-title">Resonance Music</h2>
+        <div class="shuffle-meta"><span id="shuffle-position"></span><span>Every song, a different order.</span></div>
+        <audio id="shuffle-audio" controls preload="none" aria-label="Shuffled song player"></audio>
+        <div class="shuffle-actions">
+          <button class="btn" id="shuffle-next" type="button">Next song</button>
+          <button class="btn" id="shuffle-again" type="button">Reshuffle</button>
+          <a id="shuffle-song-link" target="_blank" rel="noopener noreferrer" aria-label="Lyrics and artwork (opens in a new tab)">Lyrics &amp; artwork ↗</a>
+        </div>
+        <p id="shuffle-status" class="shuffle-status" role="status" aria-live="polite"></p>
+        <p class="shuffle-note">Keep this page open. After the last song, a fresh shuffle keeps the music going.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section"><div class="container"><div id="all-songs" class="song-grid"></div></div></section>
 <footer><div class="container footer-wrap"><span>Resonance Music — listen from the larger view.</span><a class="footer-companion" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Windwood Designs — art and woodworking (opens in a new tab)">Windwood Designs · Art &amp; woodworking <span aria-hidden="true">↗</span></a></div></footer>
+<script id="shuffle-player-script">
+(() => {
+  'use strict';
+  const get = id => document.getElementById(id);
+  const start = get('shuffle-start'), panel = get('shuffle-player'), audio = get('shuffle-audio');
+  const title = get('shuffle-title'), artwork = get('shuffle-art'), position = get('shuffle-position');
+  const status = get('shuffle-status'), next = get('shuffle-next'), songLink = get('shuffle-song-link');
+  const seen = new Set();
+  const songs = (window.RESONANCE_SONGS || []).filter(song => {
+    if (!song || !/^[a-z0-9_-]+$/i.test(song.slug || '') || seen.has(song.slug)) return false;
+    seen.add(song.slug);
+    return true;
+  });
+  let queue = [], index = -1, current = null, sessionActive = false;
+  let wantsPlay = false, switching = false, loadId = 0, failedLoad = -1, expectedSource = '';
+  const unavailable = new Set();
+  const message = text => { status.textContent = text; };
+
+  function shuffled(list, avoidSlug) {
+    const result = list.slice();
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    // Each cycle contains every available song once, with no back-to-back repeat.
+    if (result.length > 1 && result[0].slug === avoidSlug) {
+      const j = 1 + Math.floor(Math.random() * (result.length - 1));
+      [result[0], result[j]] = [result[j], result[0]];
+    }
+    return result;
+  }
+
+  function mediaState(state) {
+    try { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = state; } catch {}
+  }
+
+  function metadata(song) {
+    try {
+      if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: song.title || song.slug, artist: 'Resonance Music', album: 'Cosmic Retune',
+        artwork: [{ src: new URL(song.image || 'assets/art/listening-room.png', document.baseURI).href }]
+      });
+    } catch {}
+  }
+
+  function updatePosition() {
+    try {
+      if (!navigator.mediaSession?.setPositionState || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      navigator.mediaSession.setPositionState({
+        duration: audio.duration, playbackRate: audio.playbackRate || 1,
+        position: Math.max(0, Math.min(audio.currentTime, audio.duration))
+      });
+    } catch {}
+  }
+
+  function fileUnavailable(token) {
+    if (token !== loadId || token === failedLoad || !current || !sessionActive) return;
+    failedLoad = token;
+    unavailable.add(current.slug);
+    if (unavailable.size >= songs.length) {
+      wantsPlay = false;
+      sessionActive = false;
+      switching = false;
+      audio.pause();
+      next.disabled = true;
+      mediaState('none');
+      message('The music could not load. Check your connection, then try Shuffle all songs again.');
+      return;
+    }
+    if (!wantsPlay) {
+      switching = false;
+      message('This song could not load. Choose Next song to continue.');
+      return;
+    }
+    message('This song could not load. Moving to the next one…');
+    Promise.resolve().then(() => {
+      if (token === loadId && wantsPlay && sessionActive) advance(true);
+    });
+  }
+
+  function playCurrent() {
+    if (!current || !sessionActive) return;
+    if (unavailable.has(current.slug)) { advance(true); return; }
+    wantsPlay = true;
+    const token = loadId;
+    message('Loading…');
+    let attempt;
+    try { attempt = audio.play(); }
+    catch { fileUnavailable(token); return; }
+    if (attempt?.catch) attempt.catch(error => {
+      if (token !== loadId || error.name === 'AbortError') return;
+      if (error.name === 'NotAllowedError') {
+        wantsPlay = false;
+        switching = false;
+        mediaState('paused');
+        message('Press play in the player to continue.');
+      } else fileUnavailable(token);
+    });
+  }
+
+  function loadSong(song, autoplay) {
+    current = song;
+    loadId++;
+    failedLoad = -1;
+    wantsPlay = autoplay;
+    switching = true;
+    title.textContent = song.title || song.slug;
+    artwork.src = song.image || 'assets/art/listening-room.png';
+    artwork.alt = (song.title || song.slug) + ' artwork';
+    songLink.href = 'song.html?slug=' + encodeURIComponent(song.slug);
+    position.textContent = 'Song ' + (index + 1) + ' of ' + queue.length;
+    metadata(song);
+    expectedSource = new URL('media/audio/' + encodeURIComponent(song.slug) + '.mp3', document.baseURI).href;
+    audio.preload = 'auto';
+    audio.src = expectedSource;
+    audio.load();
+    if (autoplay) playCurrent();
+    else { switching = false; message('Paused. Press play when you’re ready.'); mediaState('paused'); }
+  }
+
+  function advance(autoplay = true) {
+    if (!sessionActive) return;
+    do { index++; } while (index < queue.length && unavailable.has(queue[index].slug));
+    if (index >= queue.length) {
+      queue = shuffled(songs.filter(song => !unavailable.has(song.slug)), current?.slug);
+      index = 0;
+    }
+    if (!queue.length) return;
+    loadSong(queue[index], autoplay);
+  }
+
+  function beginShuffle() {
+    if (!songs.length) return;
+    unavailable.clear();
+    queue = shuffled(songs, current?.slug);
+    index = -1;
+    sessionActive = true;
+    next.disabled = false;
+    panel.hidden = false;
+    start.setAttribute('aria-expanded', 'true');
+    start.textContent = 'Reshuffle all songs';
+    // Start inside the click gesture, without waiting for network checks.
+    advance(true);
+    panel.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  }
+
+  start.addEventListener('click', beginShuffle);
+  get('shuffle-again').addEventListener('click', beginShuffle);
+  next.addEventListener('click', () => advance(wantsPlay || !audio.paused));
+  audio.addEventListener('play', () => {
+    if (current && unavailable.has(current.slug)) { advance(true); return; }
+    wantsPlay = true;
+    switching = false;
+  });
+  audio.addEventListener('playing', () => { switching = false; mediaState('playing'); message('Playing. The next song follows automatically.'); });
+  audio.addEventListener('pause', () => {
+    if (switching || audio.ended || !sessionActive) return;
+    wantsPlay = false;
+    mediaState('paused');
+    message('Paused. Press play when you’re ready.');
+  });
+  audio.addEventListener('ended', () => { if (audio.ended && sessionActive) advance(true); });
+  audio.addEventListener('error', () => {
+    if (!audio.error || (audio.currentSrc && audio.currentSrc !== expectedSource)) return;
+    fileUnavailable(loadId);
+  });
+  audio.addEventListener('loadedmetadata', updatePosition);
+  audio.addEventListener('timeupdate', updatePosition);
+  artwork.addEventListener('error', () => { artwork.hidden = true; });
+  audio.addEventListener('loadstart', () => { artwork.hidden = false; });
+
+  if ('mediaSession' in navigator) {
+    const actions = {
+      play: playCurrent,
+      pause: () => { wantsPlay = false; audio.pause(); },
+      nexttrack: () => advance(wantsPlay || !audio.paused),
+      seekto: event => { if (Number.isFinite(audio.duration) && Number.isFinite(event.seekTime)) audio.currentTime = Math.max(0, Math.min(event.seekTime, audio.duration)); },
+      seekbackward: event => { audio.currentTime = Math.max(0, audio.currentTime - (event.seekOffset || 10)); },
+      seekforward: event => { if (Number.isFinite(audio.duration)) audio.currentTime = Math.min(audio.duration, audio.currentTime + (event.seekOffset || 10)); }
+    };
+    for (const [action, handler] of Object.entries(actions)) {
+      try { navigator.mediaSession.setActionHandler(action, handler); } catch {}
+    }
+  }
+  if (!songs.length) { start.disabled = true; start.textContent = 'Songs arriving soon'; }
+})();
+</script>
 </body>
 </html>
+
+
 
