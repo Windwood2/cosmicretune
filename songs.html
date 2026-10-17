@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Songs — Resonance Music</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="js/songs.js"></script>
+  <script src="js/songs.js?v=20261017"></script>
   <script src="js/site.js" defer></script>
   <style id="equal-choice-buttons">
     .btn {
@@ -34,6 +34,13 @@
     .shuffle-actions button { cursor: pointer; font: inherit; font-size: .9rem; padding: .55rem .9rem; box-shadow: none; }
     .shuffle-actions button:disabled { opacity: .45; cursor: default; }
     .shuffle-status { font-size: .9rem; margin: .7rem 0 0; line-height: 1.5; }
+    .continuous-controls { display: flex; align-items: center; gap: 1rem; margin-top: .85rem; }
+    .continuous-controls[hidden], #shuffle-audio[hidden] { display: none; }
+    .continuous-controls button { cursor: pointer; font: inherit; min-width: 5.5rem; min-height: 44px; }
+    .continuous-progress { flex: 1; min-width: 0; }
+    .continuous-progress input { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--gold); cursor: pointer; }
+    .continuous-progress output { display: block; color: var(--muted); font-variant-numeric: tabular-nums; font-size: .9rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .shuffle-note { color: var(--muted); font-size: .85rem; margin: .35rem 0 0; line-height: 1.5; }
     .shuffle-intro { color: var(--muted); font-size: .95rem; margin: .8rem 0 0; }
     .shuffle-lyrics { min-width: 0; }
@@ -64,7 +71,7 @@
     <div class="buttons">
       <button class="btn" id="shuffle-start" type="button" aria-controls="shuffle-player" aria-expanded="false" aria-describedby="shuffle-intro">Shuffle &amp; play all songs</button>
     </div>
-    <p id="shuffle-intro" class="shuffle-intro">Continuous music in a random order, with lyrics that change with each song.</p>
+    <p id="shuffle-intro" class="shuffle-intro">Every song once before the next round, with lyrics that change with the music.</p>
   </div></section>
 <section id="shuffle-player" class="section shuffle-section" aria-labelledby="shuffle-title" hidden>
   <div class="container">
@@ -75,12 +82,20 @@
         <h2 id="shuffle-title">Resonance Music</h2>
         <div class="shuffle-meta"><span id="shuffle-position"></span><span>Every song, a different order.</span></div>
         <audio id="shuffle-audio" controls preload="none" aria-label="Shuffled song player"></audio>
+        <div id="continuous-controls" class="continuous-controls" hidden>
+          <button id="continuous-toggle" class="btn" type="button">Pause</button>
+          <div class="continuous-progress">
+            <label class="sr-only" for="continuous-seek">Position in this song</label>
+            <input id="continuous-seek" type="range" min="0" max="1000" value="0" step="1" disabled>
+            <output id="continuous-time" for="continuous-seek">0:00 / –:––</output>
+          </div>
+        </div>
         <div class="shuffle-actions">
           <button class="btn" id="shuffle-next" type="button">Next song</button>
-          <button class="btn" id="shuffle-again" type="button">Reshuffle &amp; play</button>
+          <button class="btn" id="shuffle-again" type="button">Reshuffle remaining</button>
         </div>
         <p id="shuffle-status" class="shuffle-status" role="status" aria-live="polite"></p>
-        <p class="shuffle-note">Keep this page open. After the last song, a fresh shuffle keeps the music going.</p>
+        <p class="shuffle-note">Keep this page open while listening. Your playing order is saved, and a new round starts after every song has played.</p>
       </div>
       <section class="shuffle-lyrics" aria-labelledby="shuffle-lyrics-title">
         <h3 id="shuffle-lyrics-title">Lyrics</h3>
@@ -102,7 +117,9 @@
   const get = id => document.getElementById(id);
   const start = get('shuffle-start'), panel = get('shuffle-player'), audio = get('shuffle-audio');
   const title = get('shuffle-title'), artwork = get('shuffle-art'), position = get('shuffle-position');
-  const status = get('shuffle-status'), next = get('shuffle-next');
+  const status = get('shuffle-status'), next = get('shuffle-next'), again = get('shuffle-again');
+  const controls = get('continuous-controls'), toggle = get('continuous-toggle');
+  const seek = get('continuous-seek'), clock = get('continuous-time');
   const lyrics = get('shuffle-lyrics-text'), lyricsStatus = get('shuffle-lyrics-status');
   const lyricsScroll = get('shuffle-lyrics-scroll'), lyricsSong = get('shuffle-lyrics-song');
   const seen = new Set();
@@ -111,15 +128,68 @@
     seen.add(song.slug);
     return true;
   });
-  let queue = [], index = -1, current = null, sessionActive = false;
-  let wantsPlay = false, switching = false, loadId = 0, failedLoad = -1, expectedSource = '';
-  let lyricsRequest = null;
-  const unavailable = new Set();
+  const bySlug = new Map(songs.map(song => [song.slug, song]));
+  const catalog = songs.map(song => song.slug).sort().join('|');
+  const STORAGE = 'cosmic-retune-shuffle-v2';
+  const STREAM = !!window.MediaSource && MediaSource.isTypeSupported('audio/mpeg');
+  const AHEAD = 150, CHUNK = 128 * 1024;
+  let state = restore(), active = false, wantsPlay = false, switching = false;
+  let generation = 0, current = null, lyricsRequest = null, lyricsToken = 0;
+  let stream = null, directPosition = 0, directRestore = 0, lastSave = 0;
+  let expectedSource = '', blocked = false, preferStream = STREAM;
+  let fetchController = null;
+  const cache = new Map();
   const message = text => { status.textContent = text; };
+  const source = slug => new URL('media/audio/' + encodeURIComponent(slug) + '.mp3', document.baseURI).href;
 
-  async function updateLyrics(song, token) {
-    if (lyricsRequest) lyricsRequest.abort();
-    const request = new AbortController();
+  function shuffled(list, avoid) {
+    const result = list.slice();
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    if (result.length > 1 && result[0] === avoid) {
+      const j = 1 + Math.floor(Math.random() * (result.length - 1));
+      [result[0], result[j]] = [result[j], result[0]];
+    }
+    return result;
+  }
+
+  function fresh(avoid, cycle = 1) {
+    return { catalog, order: shuffled(songs.map(song => song.slug), avoid), index: 0, cycle, position: 0 };
+  }
+
+  function restore() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE));
+      if (saved && saved.catalog === catalog && Array.isArray(saved.order) &&
+          saved.order.length === songs.length && new Set(saved.order).size === songs.length &&
+          saved.order.every(slug => bySlug.has(slug)) && Number.isInteger(saved.index) &&
+          saved.index >= 0 && saved.index < saved.order.length &&
+          Number.isInteger(saved.cycle) && saved.cycle > 0 &&
+          Number.isFinite(saved.position) && saved.position >= 0) return saved;
+    } catch {}
+    return null;
+  }
+
+  function following(previous) {
+    return previous.index + 1 < previous.order.length
+      ? { ...previous, index: previous.index + 1, position: 0 }
+      : fresh(previous.order[previous.index], previous.cycle + 1);
+  }
+
+  function remember(force = false) {
+    if (!state) return;
+    const now = Date.now();
+    if (!force && now - lastSave < 5000) return;
+    state.position = elapsed();
+    try { localStorage.setItem(STORAGE, JSON.stringify(state)); } catch {}
+    lastSave = now;
+  }
+
+  async function updateLyrics(song) {
+    lyricsRequest?.abort();
+    const request = new AbortController(), token = ++lyricsToken;
     lyricsRequest = request;
     lyricsSong.textContent = song.title || song.slug;
     lyrics.textContent = '';
@@ -129,208 +199,406 @@
     lyricsStatus.hidden = false;
     lyricsStatus.textContent = 'Loading lyrics…';
     try {
-      const url = new URL('data/lyrics/' + encodeURIComponent(song.slug) + '.txt', document.baseURI);
-      const response = await fetch(url.href, { signal: request.signal });
-      if (token !== loadId) return;
+      const response = await fetch(new URL('data/lyrics/' + encodeURIComponent(song.slug) + '.txt', document.baseURI), { signal: request.signal });
+      if (token !== lyricsToken) return;
       if (response.status === 404) {
         lyricsStatus.textContent = 'Lyrics haven’t been added for this song yet.';
         return;
       }
       if (!response.ok || (response.headers.get('content-type') || '').includes('text/html')) throw new Error('Lyrics unavailable');
       const text = (await response.text()).trim();
-      if (token !== loadId) return;
-      if (!text) {
-        lyricsStatus.textContent = 'Lyrics haven’t been added for this song yet.';
-        return;
-      }
-      // Plain text preserves the lyric layout without treating it as HTML.
+      if (token !== lyricsToken) return;
       lyrics.textContent = text;
-      lyrics.hidden = false;
-      lyricsStatus.textContent = '';
-      lyricsStatus.hidden = true;
+      lyrics.hidden = !text;
+      lyricsStatus.hidden = !!text;
+      lyricsStatus.textContent = text ? '' : 'Lyrics haven’t been added for this song yet.';
       lyricsScroll.scrollTop = 0;
     } catch (error) {
-      if (token === loadId && error.name !== 'AbortError') {
-        lyricsStatus.textContent = 'Lyrics could not load. They’ll update with the next song.';
-      }
+      if (token === lyricsToken && error.name !== 'AbortError') lyricsStatus.textContent = 'Lyrics could not load. They’ll update with the next song.';
     } finally {
-      if (token === loadId) {
-        lyricsScroll.setAttribute('aria-busy', 'false');
-        lyricsRequest = null;
+      if (token === lyricsToken) { lyricsScroll.setAttribute('aria-busy', 'false'); lyricsRequest = null; }
+    }
+  }
+
+  function mediaState(value) {
+    try { if (navigator.mediaSession) navigator.mediaSession.playbackState = value; } catch {}
+  }
+
+  function show(songState) {
+    const changed = !current || current.slug !== songState.order[songState.index] || state?.cycle !== songState.cycle;
+    state = { ...songState };
+    current = bySlug.get(state.order[state.index]);
+    title.textContent = current.title || current.slug;
+    artwork.hidden = false;
+    artwork.src = current.image || 'assets/art/listening-room.png';
+    artwork.alt = (current.title || current.slug) + ' artwork';
+    position.textContent = 'Song ' + (state.index + 1) + ' of ' + state.order.length + ' · Round ' + state.cycle;
+    audio.setAttribute('aria-label', (current.title || current.slug) + ' audio player');
+    try {
+      if (navigator.mediaSession && window.MediaMetadata) navigator.mediaSession.metadata = new MediaMetadata({
+        title: current.title || current.slug, artist: 'Resonance Music', album: 'Cosmic Retune',
+        artwork: [{ src: new URL(current.image || 'assets/art/listening-room.png', document.baseURI).href }]
+      });
+    } catch {}
+    if (changed) updateLyrics(current);
+  }
+
+  function currentEntry() {
+    return stream?.records.find(record => record.state.cycle === state?.cycle && record.state.index === state?.index);
+  }
+
+  function elapsed() {
+    const record = currentEntry();
+    return Math.max(0, stream ? (record ? audio.currentTime - record.start : stream.resume) :
+      (directRestore > 0 ? directRestore : Number.isFinite(audio.currentTime) ? audio.currentTime : directPosition));
+  }
+
+  function duration() {
+    const record = currentEntry();
+    return stream ? (record?.complete ? record.end - record.start : record?.duration || 0) : audio.duration;
+  }
+
+  function format(seconds) {
+    if (!Number.isFinite(seconds)) return '–:––';
+    return Math.floor(seconds / 60) + ':' + String(Math.floor(seconds % 60)).padStart(2, '0');
+  }
+
+  function updateClock() {
+    const length = duration(), at = elapsed();
+    clock.textContent = format(at) + ' / ' + format(length || NaN);
+    seek.disabled = !Number.isFinite(length) || length <= 0;
+    if (document.activeElement !== seek) seek.value = length > 0 ? Math.min(1000, at / length * 1000) : 0;
+    seek.setAttribute('aria-valuetext', format(at) + ' of ' + format(length));
+    try {
+      if (navigator.mediaSession?.setPositionState && length > 0 && Number.isFinite(length)) navigator.mediaSession.setPositionState({
+        duration: length, playbackRate: audio.playbackRate || 1, position: Math.max(0, Math.min(at, length))
+      });
+    } catch {}
+  }
+
+  // Read MPEG frame lengths, including VBR files; ID3 artwork is skipped rather than scanned as audio.
+  function mp3Duration(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let i = 0, seconds = 0;
+    if (bytes[0] === 73 && bytes[1] === 68 && bytes[2] === 51 && bytes.length >= 10) {
+      i = 10 + ((bytes[6] & 127) * 2097152 + (bytes[7] & 127) * 16384 + (bytes[8] & 127) * 128 + (bytes[9] & 127));
+      if (bytes[5] & 16) i += 10;
+    }
+    const rates = [44100, 48000, 32000];
+    const high = [0,32,40,48,56,64,80,96,112,128,160,192,224,256,320];
+    const low = [0,8,16,24,32,40,48,56,64,80,96,112,128,144,160];
+    while (i + 4 <= bytes.length) {
+      const a = bytes[i], b = bytes[i + 1], c = bytes[i + 2];
+      const version = (b >> 3) & 3, layer = (b >> 1) & 3, rateIndex = (c >> 2) & 3, bitIndex = c >> 4;
+      if (a !== 255 || (b & 224) !== 224 || version === 1 || layer !== 1 || rateIndex === 3 || bitIndex === 0 || bitIndex === 15) { i++; continue; }
+      const rate = rates[rateIndex] / (version === 3 ? 1 : version === 2 ? 2 : 4);
+      const bitrate = (version === 3 ? high : low)[bitIndex] * 1000;
+      const size = Math.floor((version === 3 ? 144 : 72) * bitrate / rate) + ((c >> 1) & 1);
+      if (i + size > bytes.length) break;
+      seconds += (version === 3 ? 1152 : 576) / rate;
+      i += size;
+    }
+    return seconds;
+  }
+
+  async function download(slug, signal) {
+    if (cache.has(slug)) return cache.get(slug);
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (signal.aborted) throw new DOMException('Canceled', 'AbortError');
+      const controller = new AbortController();
+      const abort = () => controller.abort();
+      signal.addEventListener('abort', abort, { once: true });
+      const timer = setTimeout(abort, 45000);
+      try {
+        const response = await fetch(source(slug), { signal: controller.signal, cache: attempt ? 'reload' : 'default' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        if ((response.headers.get('content-type') || '').includes('text/html')) throw new Error('Audio file missing');
+        const bytes = await response.arrayBuffer();
+        const length = mp3Duration(bytes);
+        if (length < 1) throw new Error('Audio file could not be read');
+        const result = { bytes, duration: length };
+        cache.set(slug, result);
+        // Only current/next raw songs are retained; decoded media has its own rolling buffer.
+        while (cache.size > 2) cache.delete(cache.keys().next().value);
+        return result;
+      } catch (error) {
+        if (signal.aborted) throw new DOMException('Canceled', 'AbortError');
+        lastError = error.name === 'AbortError' ? new TypeError('Audio request timed out') : error;
+      } finally {
+        clearTimeout(timer);
+        signal.removeEventListener('abort', abort);
       }
     }
+    throw lastError;
   }
 
-  function shuffled(list, avoidSlug) {
-    const result = list.slice();
-    for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [result[i], result[j]] = [result[j], result[i]];
-    }
-    // Each cycle contains every available song once, with no back-to-back repeat.
-    if (result.length > 1 && result[0].slug === avoidSlug) {
-      const j = 1 + Math.floor(Math.random() * (result.length - 1));
-      [result[0], result[j]] = [result[j], result[0]];
-    }
-    return result;
-  }
+  function bufferEnd(buffer) { return buffer.buffered.length ? buffer.buffered.end(buffer.buffered.length - 1) : 0; }
 
-  function mediaState(state) {
-    try { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = state; } catch {}
-  }
-
-  function metadata(song) {
-    try {
-      if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: song.title || song.slug, artist: 'Resonance Music', album: 'Cosmic Retune',
-        artwork: [{ src: new URL(song.image || 'assets/art/listening-room.png', document.baseURI).href }]
-      });
-    } catch {}
-  }
-
-  function updatePosition() {
-    try {
-      if (!navigator.mediaSession?.setPositionState || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
-      navigator.mediaSession.setPositionState({
-        duration: audio.duration, playbackRate: audio.playbackRate || 1,
-        position: Math.max(0, Math.min(audio.currentTime, audio.duration))
-      });
-    } catch {}
-  }
-
-  function fileUnavailable(token) {
-    if (token !== loadId || token === failedLoad || !current || !sessionActive) return;
-    failedLoad = token;
-    unavailable.add(current.slug);
-    if (unavailable.size >= songs.length) {
-      wantsPlay = false;
-      sessionActive = false;
-      switching = false;
-      audio.pause();
-      next.disabled = true;
-      mediaState('none');
-      message('The music could not load. Check your connection, then try Shuffle & play all songs again.');
-      return;
-    }
-    if (!wantsPlay) {
-      switching = false;
-      message('This song could not load. Choose Next song to continue.');
-      return;
-    }
-    message('This song could not load. Moving to the next one…');
-    Promise.resolve().then(() => {
-      if (token === loadId && wantsPlay && sessionActive) advance(true);
+  function operation(buffer, callback, signal) {
+    return new Promise((resolve, reject) => {
+      const clean = () => { buffer.removeEventListener('updateend', done); buffer.removeEventListener('error', fail); signal.removeEventListener('abort', cancel); };
+      const done = () => { clean(); resolve(); };
+      const fail = () => { clean(); reject(new Error('Audio buffer could not be decoded')); };
+      const cancel = () => { clean(); reject(new DOMException('Canceled', 'AbortError')); };
+      if (signal.aborted) { cancel(); return; }
+      buffer.addEventListener('updateend', done, { once: true });
+      buffer.addEventListener('error', fail, { once: true });
+      signal.addEventListener('abort', cancel, { once: true });
+      try { callback(); } catch (error) { clean(); reject(error); }
     });
   }
 
-  function playCurrent() {
-    if (!current || !sessionActive) return;
-    if (unavailable.has(current.slug)) { advance(true); return; }
+  function play() {
+    if (!active) return;
     wantsPlay = true;
-    const token = loadId;
-    message('Loading…');
+    blocked = false;
+    mediaState('playing');
+    const token = generation;
     let attempt;
-    try { attempt = audio.play(); }
-    catch { fileUnavailable(token); return; }
-    if (attempt?.catch) attempt.catch(error => {
-      if (token !== loadId || error.name === 'AbortError') return;
-      if (error.name === 'NotAllowedError') {
-        wantsPlay = false;
-        switching = false;
-        mediaState('paused');
-        message('Press play in the player to continue.');
-      } else fileUnavailable(token);
-    });
+    try { attempt = audio.play(); } catch (error) { playbackError(error, token); return; }
+    attempt?.catch(error => playbackError(error, token));
+    if (stream) { stream.blocked = false; fill(stream); }
   }
 
-  function loadSong(song, autoplay) {
-    current = song;
-    loadId++;
-    failedLoad = -1;
-    wantsPlay = autoplay;
+  function playbackError(error, token) {
+    if (token !== generation || error.name === 'AbortError') return;
+    if (error.name === 'NotAllowedError') {
+      wantsPlay = false; switching = false; mediaState('paused');
+      toggle.textContent = 'Play';
+      message('Press Play to continue.');
+    } else if (stream) fallback();
+    else { switching = false; blocked = true; message('This song could not load. Press Shuffle & play all songs to retry it, or Next song to skip it.'); }
+  }
+
+  function stopSource() {
+    generation++;
     switching = true;
-    title.textContent = song.title || song.slug;
-    artwork.src = song.image || 'assets/art/listening-room.png';
-    artwork.alt = (song.title || song.slug) + ' artwork';
-    audio.setAttribute('aria-label', (song.title || song.slug) + ' audio player');
-    position.textContent = 'Song ' + (index + 1) + ' of ' + queue.length;
-    metadata(song);
-    expectedSource = new URL('media/audio/' + encodeURIComponent(song.slug) + '.mp3', document.baseURI).href;
-    audio.preload = 'auto';
-    audio.src = expectedSource;
-    audio.load();
-    if (autoplay) playCurrent();
-    else { switching = false; message('Paused. Press play when you’re ready.'); mediaState('paused'); }
-    // Fetch words after starting audio, so lyrics never delay the music.
-    updateLyrics(song, loadId);
-  }
-
-  function advance(autoplay = true) {
-    if (!sessionActive) return;
-    do { index++; } while (index < queue.length && unavailable.has(queue[index].slug));
-    if (index >= queue.length) {
-      queue = shuffled(songs.filter(song => !unavailable.has(song.slug)), current?.slug);
-      index = 0;
+    fetchController?.abort();
+    fetchController = new AbortController();
+    if (stream) {
+      stream.stopped = true;
+      stream.controller.abort();
+      URL.revokeObjectURL(stream.url);
+      stream = null;
     }
-    if (!queue.length) return;
-    loadSong(queue[index], autoplay);
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
   }
 
-  function beginShuffle() {
+  function launch(songState, at = 0, autoplay = true) {
+    stopSource();
+    active = true; blocked = false; wantsPlay = autoplay;
+    show(songState);
+    directPosition = at;
+    controls.hidden = !preferStream;
+    audio.hidden = preferStream;
+    audio.controls = !preferStream;
+    toggle.textContent = autoplay ? 'Pause' : 'Play';
+    message(autoplay ? 'Preparing the music…' : 'Paused. Press Play when you’re ready.');
+    if (!preferStream) {
+      directRestore = at;
+      expectedSource = source(current.slug);
+      audio.src = expectedSource;
+      audio.preload = 'auto';
+      audio.load();
+      if (autoplay) play();
+      else switching = false;
+      remember(true);
+      return;
+    }
+    const media = new MediaSource(), controller = new AbortController();
+    const s = { media, controller, url: URL.createObjectURL(media), records: [],
+      nextState: { ...songState, position: at }, pending: null, filling: false, stopped: false, blocked: false, resume: at };
+    stream = s;
+    media.addEventListener('sourceopen', () => {
+      if (stream !== s || s.buffer) return;
+      try {
+        s.buffer = media.addSourceBuffer('audio/mpeg');
+        s.buffer.mode = 'sequence';
+        media.duration = Infinity;
+        if (at > 0) audio.currentTime = at;
+        fill(s);
+      } catch { fallback(); }
+    });
+    expectedSource = s.url;
+    audio.src = s.url;
+    audio.preload = 'auto';
+    audio.load();
+    // One user-initiated play call owns the continuous stream, including every song boundary.
+    if (autoplay) play();
+    remember(true);
+  }
+
+  async function fill(s) {
+    if (stream !== s || !s.buffer || s.filling || s.stopped || s.blocked) return;
+    s.filling = true;
+    try {
+      while (!s.stopped && stream === s && bufferEnd(s.buffer) < Math.max(audio.currentTime, s.resume) + AHEAD) {
+        const cutoff = Math.max(audio.currentTime, s.resume) - 40;
+        if (cutoff > 0 && s.buffer.buffered.length && s.buffer.buffered.start(0) < cutoff - 10) {
+          await operation(s.buffer, () => s.buffer.remove(0, cutoff), s.controller.signal);
+        }
+        if (!s.pending) {
+          const plan = s.nextState;
+          const data = await download(plan.order[plan.index], s.controller.signal);
+          if (s.stopped || stream !== s) return;
+          if (!s.records.length && s.resume >= data.duration) {
+            s.resume = Math.max(0, data.duration - 1);
+            audio.currentTime = s.resume;
+          }
+          const record = { state: plan, start: bufferEnd(s.buffer), end: bufferEnd(s.buffer), complete: false, duration: data.duration };
+          s.records.push(record);
+          s.pending = { record, bytes: new Uint8Array(data.bytes), offset: 0 };
+          updateClock();
+        }
+        const pending = s.pending;
+        const end = Math.min(pending.offset + CHUNK, pending.bytes.length);
+        await operation(s.buffer, () => s.buffer.appendBuffer(pending.bytes.subarray(pending.offset, end)), s.controller.signal);
+        if (s.stopped || stream !== s) return;
+        pending.offset = end;
+        pending.record.end = bufferEnd(s.buffer);
+        if (end === pending.bytes.length) {
+          if (pending.record.end <= pending.record.start) throw new Error('Audio buffer was empty');
+          pending.record.complete = true;
+          s.nextState = following(pending.record.state);
+          s.pending = null;
+        }
+        // Keep only the current song and planned future songs in the metadata list.
+        s.records = s.records.filter(record => !record.complete || record.end > audio.currentTime - 1);
+      }
+    } catch (error) {
+      if (s.stopped || stream !== s || error.name === 'AbortError') return;
+      if (error.name === 'QuotaExceededError') {
+        // Retry after playback frees space; never remove unplayed songs to make room.
+        if (bufferEnd(s.buffer) - audio.currentTime < 5) fallback();
+      } else if (error.message.startsWith('HTTP') || error.message.includes('missing') || error instanceof TypeError) {
+        s.blocked = true; blocked = true;
+        message('A song is waiting for a connection. Press Shuffle & play all songs to retry. Your playing order is saved.');
+      } else fallback();
+    } finally { s.filling = false; }
+  }
+
+  function fallback() {
+    if (!stream) return;
+    syncTrack();
+    const at = elapsed(), resume = wantsPlay;
+    preferStream = false;
+    launch(state, at, resume);
+  }
+
+  function syncTrack() {
+    if (!stream || !state) return;
+    const at = audio.currentTime;
+    const record = stream.records.find(item => at >= item.start && (!item.complete || at < item.end));
+    if (record && (record.state.index !== state.index || record.state.cycle !== state.cycle)) {
+      show(record.state);
+      remember(true);
+    }
+  }
+
+  function moveNext() {
+    if (!state || !active) return;
+    syncTrack();
+    launch(following(state), 0, wantsPlay || !audio.paused);
+  }
+
+  function seekTo(at) {
+    const length = duration();
+    if (!Number.isFinite(at) || !Number.isFinite(length) || length <= 0) return;
+    at = Math.max(0, Math.min(at, Math.max(0, length - .1)));
+    if (!stream) { audio.currentTime = at; return; }
+    const record = currentEntry(), target = record.start + at;
+    let buffered = false;
+    for (let i = 0; i < audio.buffered.length; i++) if (target >= audio.buffered.start(i) && target < audio.buffered.end(i)) buffered = true;
+    if (buffered) audio.currentTime = target;
+    else launch(state, at, wantsPlay && !audio.paused);
+    updateClock();
+  }
+
+  function begin() {
     if (!songs.length) return;
-    unavailable.clear();
-    queue = shuffled(songs, current?.slug);
-    index = -1;
-    sessionActive = true;
-    next.disabled = false;
     panel.hidden = false;
     start.setAttribute('aria-expanded', 'true');
-    // Start inside the click gesture, without waiting for network checks.
-    advance(true);
+    next.disabled = false;
+    if (!state) state = fresh();
+    if (!active) launch(state, state.position, true);
+    else if (blocked && !stream) launch(state, elapsed(), true);
+    else play();
     panel.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
 
-  start.addEventListener('click', beginShuffle);
-  get('shuffle-again').addEventListener('click', beginShuffle);
-  next.addEventListener('click', () => advance(wantsPlay || !audio.paused));
-  audio.addEventListener('play', () => {
-    if (current && unavailable.has(current.slug)) { advance(true); return; }
-    wantsPlay = true;
-    switching = false;
+  start.addEventListener('click', begin);
+  again.addEventListener('click', () => {
+    if (!active || !state) return;
+    syncTrack();
+    const at = elapsed();
+    // Reshuffle only the songs still waiting; it cannot put a played song back into this round.
+    const remaining = shuffled(state.order.slice(state.index + 1));
+    const order = state.order.slice(0, state.index + 1).concat(remaining);
+    launch({ ...state, order }, at, wantsPlay || !audio.paused);
   });
-  audio.addEventListener('playing', () => { switching = false; mediaState('playing'); message('Playing. The next song follows automatically.'); });
+  next.addEventListener('click', moveNext);
+  toggle.addEventListener('click', () => {
+    if (audio.paused) play();
+    else { wantsPlay = false; audio.pause(); }
+  });
+  seek.addEventListener('change', () => seekTo(Number(seek.value) / 1000 * duration()));
+  audio.addEventListener('play', () => { wantsPlay = true; switching = false; toggle.textContent = 'Pause'; });
+  audio.addEventListener('playing', () => {
+    switching = false; wantsPlay = true; toggle.textContent = 'Pause'; mediaState('playing');
+    if (!blocked) message('Playing. Every song once before the next round.');
+  });
   audio.addEventListener('pause', () => {
-    if (switching || audio.ended || !sessionActive) return;
-    wantsPlay = false;
-    mediaState('paused');
-    message('Paused. Press play when you’re ready.');
+    if (switching || audio.ended || !active) return;
+    wantsPlay = false; toggle.textContent = 'Play'; mediaState('paused'); remember(true);
+    message('Paused. Press Play when you’re ready.');
   });
-  audio.addEventListener('ended', () => { if (audio.ended && sessionActive) advance(true); });
+  audio.addEventListener('ended', () => { if (!stream && active && audio.ended) moveNext(); });
   audio.addEventListener('error', () => {
-    if (!audio.error || (audio.currentSrc && audio.currentSrc !== expectedSource)) return;
-    fileUnavailable(loadId);
+    if (!active || !audio.error || (audio.currentSrc && audio.currentSrc !== expectedSource)) return;
+    if (stream) fallback();
+    else { blocked = true; switching = false; message('This song could not load. Press Shuffle & play all songs to retry it, or Next song to skip it.'); }
   });
-  audio.addEventListener('loadedmetadata', updatePosition);
-  audio.addEventListener('timeupdate', updatePosition);
-  artwork.addEventListener('error', () => { artwork.hidden = true; });
-  audio.addEventListener('loadstart', () => { artwork.hidden = false; });
-
-  if ('mediaSession' in navigator) {
-    const actions = {
-      play: playCurrent,
-      pause: () => { wantsPlay = false; audio.pause(); },
-      nexttrack: () => advance(wantsPlay || !audio.paused),
-      seekto: event => { if (Number.isFinite(audio.duration) && Number.isFinite(event.seekTime)) audio.currentTime = Math.max(0, Math.min(event.seekTime, audio.duration)); },
-      seekbackward: event => { audio.currentTime = Math.max(0, audio.currentTime - (event.seekOffset || 10)); },
-      seekforward: event => { if (Number.isFinite(audio.duration)) audio.currentTime = Math.min(audio.duration, audio.currentTime + (event.seekOffset || 10)); }
-    };
-    for (const [action, handler] of Object.entries(actions)) {
-      try { navigator.mediaSession.setActionHandler(action, handler); } catch {}
+  audio.addEventListener('loadedmetadata', () => {
+    if (!stream && directRestore > 0) {
+      audio.currentTime = Math.min(directRestore, Math.max(0, audio.duration - .1));
+      directRestore = 0;
     }
+    updateClock();
+  });
+  audio.addEventListener('timeupdate', () => { syncTrack(); updateClock(); remember(); if (stream) fill(stream); });
+  audio.addEventListener('waiting', () => {
+    if (!active || !wantsPlay) return;
+    mediaState('playing');
+    if (!blocked) message('Buffering the music…');
+    if (stream) fill(stream);
+  });
+  artwork.addEventListener('error', () => { artwork.hidden = true; });
+  window.addEventListener('pagehide', () => { syncTrack(); remember(true); });
+  document.addEventListener('visibilitychange', () => {
+    syncTrack(); remember(true); updateClock();
+    if (stream) fill(stream);
+  });
+  window.addEventListener('online', () => { if (stream) { stream.blocked = false; blocked = false; fill(stream); } });
+  if (navigator.mediaSession) {
+    const actions = {
+      play: () => active ? play() : begin(),
+      pause: () => { wantsPlay = false; audio.pause(); },
+      nexttrack: moveNext,
+      previoustrack: () => seekTo(0),
+      seekto: event => seekTo(event.seekTime),
+      seekbackward: event => seekTo(elapsed() - (event.seekOffset || 10)),
+      seekforward: event => seekTo(elapsed() + (event.seekOffset || 10))
+    };
+    for (const [action, handler] of Object.entries(actions)) try { navigator.mediaSession.setActionHandler(action, handler); } catch {}
   }
   if (!songs.length) { start.disabled = true; start.textContent = 'Songs arriving soon'; }
 })();
+
 </script>
 </body>
 </html>
+
+
