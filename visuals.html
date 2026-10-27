@@ -1,18 +1,195 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Visuals — Resonance Music</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="js/songs.js"></script>
-  <script src="js/site.js" defer></script>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="description" content="Inner views of wider worlds. Explore imagined futures within water, light, living matter and vast inhabited spaces in Cosmic Retune's image gallery.">
+ <meta name="theme-color" content="#08101a">
+ <title>Visuals — Inner Views · Cosmic Retune</title>
+ <link rel="stylesheet" href="css/style.css">
+ <link rel="stylesheet" href="css/visuals.css">
+ <script src="js/visuals-data.js" defer></script>
+ <script src="js/visuals.js" defer></script>
 </head>
-<body>
-<header class="topbar"><div class="container nav-wrap"><a class="brand" href="index.html">Resonance Music</a><nav class="nav"><a href="index.html">Home</a><a href="songs.html">Songs</a><a href="philosophy.html">Philosophy</a><a href="about.html">About</a><a href="visuals.html">Visuals</a><a class="companion-link" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Art — Windwood Designs (opens in a new tab)">Art <span aria-hidden="true">↗</span></a></nav></div></header>
-<section class="hero small"><div class="hero-bg" style="background-image:url('assets/art/resonance-field.png');"></div><div class="hero-overlay"></div><div class="container hero-content"><div class="eyebrow">Visual field</div><h1>Visuals</h1><p class="lead">Light, pattern, motion and image as another way of entering the same field.</p></div></section>
-<section class="section"><div class="container"><div class="gallery"><img src="assets/art/earth-hero.png" alt="Earth artwork"><img src="assets/art/listening-room.png" alt="Listening room artwork"><img src="assets/art/cosmic-mind.png" alt="Cosmic mind artwork"><img src="assets/art/resonance-field.png" alt="Resonance field artwork"></div></div></section>
-<footer><div class="container footer-wrap"><span>Resonance Music — visual field.</span><a class="footer-companion" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Windwood Designs — art and woodworking (opens in a new tab)">Windwood Designs · Art &amp; woodworking <span aria-hidden="true">↗</span></a></div></footer>
+<body class="visuals-page">
+<a class="skip-link" href="#gallery">Skip to the images</a>
+<header class="topbar"><div class="container nav-wrap">
+ <a class="brand" href="index.html">Resonance Music</a>
+ <nav class="nav" aria-label="Main navigation">
+  <a href="index.html">Home</a><a href="songs.html">Songs</a><a href="philosophy.html">Philosophy</a><a href="about.html">About</a>
+  <a href="visuals.html" class="active" aria-current="page">Visuals</a>
+  <a class="companion-link" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Art — Windwood Designs (opens in a new tab)">Art <span aria-hidden="true">↗</span></a>
+ </nav>
+</div></header>
+<main>
+ <section class="visual-hero" aria-labelledby="visuals-title">
+  <img class="visual-hero-image" src="assets/inner-views/03-orbital-garden.webp" srcset="assets/inner-views/03-orbital-garden-thumb.webp 640w, assets/inner-views/03-orbital-garden.webp 1672w" sizes="100vw" alt="A vast garden landscape curves upward into its own sunlit sky." width="1672" height="941" fetchpriority="high">
+  <div class="container visual-intro">
+   <div class="eyebrow">Cosmic Retune · Visual field</div>
+   <h1 id="visuals-title">Inner views.<br>Wider worlds.</h1>
+   <p class="lead">A collection of possible futures, seen from within. Space to look further, linger, and let another possibility take shape.</p>
+   <div class="buttons">
+    <a class="btn primary" href="assets/inner-views/03-orbital-garden.webp" data-view="03-orbital-garden">Open this view <span aria-hidden="true">↗</span></a>
+    <a class="btn" href="#gallery">Explore the collection <span aria-hidden="true">↓</span></a>
+   </div>
+  </div>
+ </section>
+ <section class="gallery-section" id="gallery" aria-labelledby="gallery-title">
+  <div class="container">
+   <div class="gallery-heading"><h2 id="gallery-title">A little room for possibility.</h2><p>Choose an image. Stay as long as you like.</p></div>
+   <div class="gallery-filters" id="gallery-filters" aria-label="Image collections" hidden>
+    <button type="button" data-filter="inner" aria-pressed="true">Inner views</button>
+    <button type="button" data-filter="living" aria-pressed="false">Living spaces</button>
+    <button type="button" data-filter="within" aria-pressed="false">Worlds within</button>
+    <button type="button" data-filter="light" aria-pressed="false">Fields of light</button>
+    <button type="button" data-filter="earlier" aria-pressed="false">Earlier work</button>
+    <span class="view-count" id="view-count" aria-live="polite">12 views</span>
+   </div>
+   <div class="inner-gallery">
+<figure class="view-item" data-id="01-inner-tide">
+  <a class="view-image-link" data-view="01-inner-tide" href="assets/inner-views/01-inner-tide.webp" aria-label="Open The Inner Tide in the large viewer">
+   <img src="assets/inner-views/01-inner-tide-thumb.webp" alt="An ocean sanctuary, lit by the moving world above." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Living spaces</span><h3>The Inner Tide</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="02-crystal-sanctuary">
+  <a class="view-image-link" data-view="02-crystal-sanctuary" href="assets/inner-views/02-crystal-sanctuary.webp" aria-label="Open The Crystal Sanctuary in the large viewer">
+   <img src="assets/inner-views/02-crystal-sanctuary-thumb.webp" alt="An inhabited valley held within a luminous crystal mountain." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Living spaces</span><h3>The Crystal Sanctuary</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="03-orbital-garden">
+  <a class="view-image-link" data-view="03-orbital-garden" href="assets/inner-views/03-orbital-garden.webp" aria-label="Open A Garden Around the Sky in the large viewer">
+   <img src="assets/inner-views/03-orbital-garden-thumb.webp" alt="An interior landscape that curves upward into its own sky." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Living spaces</span><h3>A Garden Around the Sky</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="04-nacre-habitat">
+  <a class="view-image-link" data-view="04-nacre-habitat" href="assets/inner-views/04-nacre-habitat.webp" aria-label="Open Rooms of the Tide in the large viewer">
+   <img src="assets/inner-views/04-nacre-habitat-thumb.webp" alt="Iridescent chambers, gardens, and still water at an unfolding scale." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Living spaces</span><h3>Rooms of the Tide</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="05-within-water">
+  <a class="view-image-link" data-view="05-within-water" href="assets/inner-views/05-within-water.webp" aria-label="Open Within a Drop in the large viewer">
+   <img src="assets/inner-views/05-within-water-thumb.webp" alt="A drop of water imagined as an expansive world." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Worlds within</span><h3>Within a Drop</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="06-seed-world">
+  <a class="view-image-link" data-view="06-seed-world" href="assets/inner-views/06-seed-world.webp" aria-label="Open The Unfolding Seed in the large viewer">
+   <img src="assets/inner-views/06-seed-world-thumb.webp" alt="A seed becomes a landscape of translucent membranes and branching light." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Worlds within</span><h3>The Unfolding Seed</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="07-mineral-light">
+  <a class="view-image-link" data-view="07-mineral-light" href="assets/inner-views/07-mineral-light.webp" aria-label="Open Where Stone Holds Light in the large viewer">
+   <img src="assets/inner-views/07-mineral-light-thumb.webp" alt="Layered mineral, clear crystal, and a quiet copper river." width="1672" height="940" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Worlds within</span><h3>Where Stone Holds Light</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="08-reef-interior">
+  <a class="view-image-link" data-view="08-reef-interior" href="assets/inner-views/08-reef-interior.webp" aria-label="Open A Living Lattice in the large viewer">
+   <img src="assets/inner-views/08-reef-interior-thumb.webp" alt="Living structure seen from within, with space between every connection." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Worlds within</span><h3>A Living Lattice</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="09-folded-light">
+  <a class="view-image-link" data-view="09-folded-light" href="assets/inner-views/09-folded-light.webp" aria-label="Open The Space Light Makes in the large viewer">
+   <img src="assets/inner-views/09-folded-light-thumb.webp" alt="Light folds into layers of space, without a single outer wall." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Fields of light</span><h3>The Space Light Makes</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="10-aurora-interior">
+  <a class="view-image-link" data-view="10-aurora-interior" href="assets/inner-views/10-aurora-interior.webp" aria-label="Open Inside the Aurora in the large viewer">
+   <img src="assets/inner-views/10-aurora-interior-thumb.webp" alt="Aurora curtains seen from their luminous interior." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Fields of light</span><h3>Inside the Aurora</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="11-stellar-nursery">
+  <a class="view-image-link" data-view="11-stellar-nursery" href="assets/inner-views/11-stellar-nursery.webp" aria-label="Open The Quiet Between Stars in the large viewer">
+   <img src="assets/inner-views/11-stellar-nursery-thumb.webp" alt="Clouds and threads of light open into the spaces between stars." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Fields of light</span><h3>The Quiet Between Stars</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="12-between-worlds">
+  <a class="view-image-link" data-view="12-between-worlds" href="assets/inner-views/12-between-worlds.webp" aria-label="Open A Wider Interior in the large viewer">
+   <img src="assets/inner-views/12-between-worlds-thumb.webp" alt="Translucent surfaces reveal one interior beyond another." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Fields of light</span><h3>A Wider Interior</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="earlier-earth-hero">
+  <a class="view-image-link" data-view="earlier-earth-hero" href="assets/art/earth-hero.png" aria-label="Open The Larger View in the large viewer">
+   <img src="assets/inner-views/earlier-earth-hero-thumb.webp" alt="Earth artwork from the original Cosmic Retune collection." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Earlier work</span><h3>The Larger View</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="earlier-listening-room">
+  <a class="view-image-link" data-view="earlier-listening-room" href="assets/art/listening-room.png" aria-label="Open The Listening Room in the large viewer">
+   <img src="assets/inner-views/earlier-listening-room-thumb.webp" alt="Listening Room artwork from the original Cosmic Retune collection." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Earlier work</span><h3>The Listening Room</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="earlier-cosmic-mind">
+  <a class="view-image-link" data-view="earlier-cosmic-mind" href="assets/art/cosmic-mind.png" aria-label="Open Cosmic Mind in the large viewer">
+   <img src="assets/inner-views/earlier-cosmic-mind-thumb.webp" alt="Cosmic Mind artwork from the original Cosmic Retune collection." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Earlier work</span><h3>Cosmic Mind</h3></figcaption>
+ </figure>
+<figure class="view-item" data-id="earlier-resonance-field">
+  <a class="view-image-link" data-view="earlier-resonance-field" href="assets/art/resonance-field.png" aria-label="Open Resonance Field in the large viewer">
+   <img src="assets/inner-views/earlier-resonance-field-thumb.webp" alt="Resonance Field artwork from the original Cosmic Retune collection." width="1672" height="941" loading="lazy" decoding="async">
+   <span class="view-open" aria-hidden="true">View large ↗</span>
+  </a>
+  <figcaption class="view-caption"><span class="view-category">Earlier work</span><h3>Resonance Field</h3></figcaption>
+ </figure>
+   </div>
+   <div class="gallery-endnote"><p>There is more than one way to imagine what comes next.</p><button type="button" class="btn" id="gallery-play" hidden>Wander through the images <span aria-hidden="true">→</span></button><span class="gallery-credit">Visual explorations created in collaboration with AI.</span></div>
+  </div>
+ </section>
+</main>
+<footer><div class="container footer-wrap"><span>Resonance Music — the visual field.</span><a class="footer-companion" href="https://windwood2.github.io/works/" target="_blank" rel="noopener noreferrer" aria-label="Windwood Designs — art and woodworking (opens in a new tab)">Windwood Designs · Art &amp; woodworking <span aria-hidden="true">↗</span></a></div></footer>
+
+<dialog class="art-viewer" id="art-viewer" aria-labelledby="viewer-title" aria-describedby="viewer-description viewer-help">
+ <header class="viewer-header">
+  <div class="viewer-heading"><span class="view-category" id="viewer-category">Inner views</span><h2 id="viewer-title">Inner view</h2></div>
+  <button type="button" class="viewer-close" id="viewer-close" autofocus>Close <span aria-hidden="true">×</span></button>
+ </header>
+ <div class="viewer-picture">
+  <div class="viewer-stage" id="viewer-stage" aria-busy="false"><div class="viewer-canvas"><img id="viewer-image" alt="" draggable="false" width="1672" height="941"></div></div>
+  <div class="viewer-loading" id="viewer-loading" hidden aria-hidden="true">Opening view…</div>
+  <button type="button" class="viewer-arrow viewer-prev" id="viewer-prev" aria-label="Previous image"><span aria-hidden="true">‹</span></button>
+  <button type="button" class="viewer-arrow viewer-next" id="viewer-next" aria-label="Next image"><span aria-hidden="true">›</span></button>
+ </div>
+ <div class="viewer-bottom">
+  <p class="viewer-description" id="viewer-description"></p>
+  <div class="viewer-toolbar" aria-label="Image viewer controls">
+   <span class="viewer-counter" id="viewer-counter">1 / 12</span>
+   <button type="button" class="viewer-control" id="viewer-play" aria-pressed="false">Play slowly</button>
+   <label class="viewer-pace">Every <select id="viewer-pace" aria-label="Slideshow interval"><option value="15">15 seconds</option><option value="25" selected>25 seconds</option><option value="40">40 seconds</option></select></label>
+   <button type="button" class="viewer-control" id="viewer-zoom" aria-pressed="false">Zoom in</button>
+   <button type="button" class="viewer-control" id="viewer-fullscreen" aria-pressed="false">Full screen</button>
+   <a class="viewer-control" id="viewer-original" href="assets/inner-views/01-inner-tide.webp" target="_blank" rel="noopener">Open image <span aria-hidden="true">↗</span></a>
+  </div>
+  <p class="viewer-help" id="viewer-help"><span class="desktop-help">← → Browse · Click image or + to zoom · Drag to explore · Esc to close</span><span class="touch-help">Swipe to browse · Tap image to zoom · Scroll to explore</span></p>
+  <span class="sr-only" id="viewer-status" role="status" aria-live="polite"></span>
+ </div>
+</dialog>
 </body>
 </html>
 
