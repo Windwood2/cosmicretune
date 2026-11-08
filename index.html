@@ -7,12 +7,17 @@
   <link rel="stylesheet" href="css/style.css">
   <script src="js/songs.js"></script>
   <script src="js/site.js" defer></script>
+  <script src="js/engage.js" defer></script>
   <style id="equal-choice-buttons">
     .btn {
       background: linear-gradient(180deg, rgba(255,220,132,.92), rgba(222,171,70,.92));
       color: #101720;
     }
     .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+  </style>
+  <style>
+    button.btn { font: inherit; font-weight: bold; cursor: pointer; }
+    .site-share-feedback { color: var(--gold); font-size: .9rem; margin: .4rem 0 0; }
   </style>
 </head>
 <body>
@@ -41,11 +46,11 @@
     <div class="buttons">
       <a class="btn" href="songs.html">Enter the listening room</a>
       <a class="btn" href="philosophy.html">Read the ideas</a>
+      <button class="btn" type="button" id="share-resonance-site">Share Resonance Music</button>
     </div>
+    <p id="site-share-feedback" class="site-share-feedback" role="status" aria-live="polite"></p>
   </div>
 </section>
-
-
 
 <section class="section">
   <div class="container grid two">
@@ -96,3 +101,4 @@
 
 </body>
 </html>
+
