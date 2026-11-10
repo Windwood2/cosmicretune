@@ -23,7 +23,27 @@ a{color:#a2d8ff;text-decoration:none}a:hover{text-decoration:underline}
 h1{font-size:clamp(42px,7.5vw,82px);line-height:1.06;font-weight:400;letter-spacing:-.022em;margin:0 auto 9px;max-width:900px;text-wrap:balance}
 .subtitle{color:#eccb88;font-size:clamp(21px,3.4vw,33px);font-style:italic;line-height:1.4;margin:12px 0 26px}
 .rule{width:74px;height:1px;background:var(--gold);opacity:.66;margin:0 auto 26px}
-.description{max-width:610px;margin:0 auto;font-size:clamp(17px,2vw,21px);line-height:1.7;color:#c8d4e4}
+
+.description {
+    max-width: 732px;
+    margin: 0 auto;
+    font-size: clamp(17px, 2vw, 21px);
+    line-height: 1.8;
+    color: #c8d4e4;
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+}
+
+.description p {
+    margin: 0 0 1.3em;
+}
+
+.description h2 {
+    text-align: center;
+    margin-bottom: 1.5em;
+}
+
 .player{max-width:665px;margin:42px auto 0;padding:27px clamp(18px,3vw,32px) 22px;border-radius:22px;border:1px solid rgba(239,197,111,.28);background:linear-gradient(145deg,rgba(14,25,43,.96),rgba(8,16,26,.93));box-shadow:0 26px 65px rgba(0,0,0,.38);text-align:left;backdrop-filter:blur(6px)}
 .player-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px}
 .player-label{letter-spacing:.16em;text-transform:uppercase;font:bold 12px system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--gold)}
