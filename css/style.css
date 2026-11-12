@@ -184,7 +184,7 @@ hr.sep { border:none; border-top:1px solid var(--line); margin:2rem 0; }
     max-height: none;
     overflow-y: visible;
   }
-  
+}  
 /* Scrollable lyrics on all desktop song pages */
 @media (min-width: 901px) {
   .lyrics-box {
@@ -193,7 +193,7 @@ hr.sep { border:none; border-top:1px solid var(--line); margin:2rem 0; }
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
   }
-}
+
 
 }
 
