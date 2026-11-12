@@ -188,7 +188,7 @@ hr.sep { border:none; border-top:1px solid var(--line); margin:2rem 0; }
 /* Scrollable lyrics on all desktop song pages */
 @media (min-width: 901px) {
   .lyrics-box {
-    max-height: calc(100vh - 7rem);
+    max-height: 400px;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
